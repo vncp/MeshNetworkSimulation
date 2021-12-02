@@ -6,16 +6,26 @@
     "@testing-library/jest-dom": "^5.15.1",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
+    "dat.gui": "^0.7.7",
+    "jsnetworkx": "^0.3.4",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-force-graph-2d": "^1.23.8",
+    "web-vitals": "^1.1.2"
+  },
+  "devDependencies": {
     "@types/jest": "^27.0.3",
     "@types/node": "^16.11.11",
     "@types/react": "^17.0.37",
     "@types/react-dom": "^17.0.11",
-    "jsnetworkx": "^0.3.4",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "json-loader": "^0.5.7",
     "react-scripts": "4.0.3",
     "typescript": "^4.5.2",
-    "web-vitals": "^1.1.2"
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.9.1"
+  },
+  "resolutions": {
+    "bezier-js": "4.0.3"
   },
   "scripts": {
     "start": "react-scripts start",

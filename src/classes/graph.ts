@@ -1,11 +1,20 @@
 import Node from './node';
 
 export default class Graph<DataType> {
-  private _nodes: Map<number, Node<DataType>>;
+  _nodes: Map<number, Node<DataType>>;
   
   constructor() {
     this._nodes = new Map<number, Node<DataType>>();
   }
+  
+  getNode(id: number): Node<DataType> | undefined {
+    return this._nodes.get(id);
+  }
+
+  setNode(node: Node<DataType>) {
+    this._nodes.set(node._id, node);
+  }
+  
 
   addVertex(id: number, data: DataType) {
     this._nodes.set(id, new Node(id, data));

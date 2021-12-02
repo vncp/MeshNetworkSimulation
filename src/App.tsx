@@ -1,43 +1,65 @@
 import logo from './logo.svg';
 import './App.css';
-import Graph from './classes/graph';
-import File from './classes/file';
-import Client from './classes/client';
+import NetworkGraph from './classes/network';
 
 function App() {
-  let graph = new Graph<Client>();
-  let clients = new Map<number, Client>();
-  let fileASize = 512;
-  for (let i = 0; i < 10; i++) {
-    let client = new Client(i+1, new File(fileASize), String.fromCharCode(65 + i));
-    clients.set(i+1, client);
-    graph.addVertex(i+1, client);
-  }
-  for (let i = 0; i < 10 - 1; i++) {
-    graph.setEdge(i, i+1, 35 + Math.floor(Math.random() * 265));
-  }
-  
-  graph.bfs(1, (node) => {
-    console.log(node._data);
-  });
-
-
+  const graphData = {
+  nodes: [
+    {
+      "id": "192.168.1.9",
+      "neighbors": ["192.168.1.28", "192.168.1.14"],
+      "x": 15,
+      "y": 10
+    },
+    {
+      "id": "192.168.1.14",
+      "neighbors": ["192.168.1.9"],
+      "x": 10,
+      "y": 10
+    },
+    {
+      "id": "192.168.1.28",
+      "neighbors": ["192.168.1.9"],
+      "x": 15,
+      "y": 10
+    },
+    {
+      "id": "192.168.1.166",
+      "neighbors": ["192.168.1.14", "192.168.1.28"],
+      "x": 12,
+      "y": 16
+    }
+  ],
+  links: [
+    {
+      "RTT": "124",
+      "source": "192.168.1.9",
+      "target": "192.168.1.14",
+      "transferring": false
+    },
+    {
+      "RTT": "124",
+      "source": "192.168.1.9",
+      "target": "192.168.1.28",
+      "transferring": true
+    },
+    {
+      "RTT": "52",
+      "source": "192.168.1.166",
+      "target": "192.168.1.28",
+      "transferring": true
+    },
+    {
+      "RTT": "95",
+      "source": "192.168.1.14",
+      "target": "192.168.1.166",
+      "transferring": true
+    }
+  ]
+  };
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <NetworkGraph gData={graphData} />
     </div>
   );
 }

@@ -1,16 +1,19 @@
 export default class File{
     readonly _maxsize: number;
-    _pieces: boolean[] = [];
+    _segments: boolean[] = [];
 
-    constructor(size: number){
+    constructor(size: number, complete = false){
         this._maxsize = size;
-        this._pieces.length = size;
-        this._pieces.fill(false, 0, size);
+        this._segments.length = size;
+        this._segments.fill(false, 0, size);
+        if (complete === true) {
+            this._segments.fill(true, 0, size);
+        }
     }
     
     isComplete = (): boolean => {
         for (let i = 0; i < this._maxsize; i++) {
-            if (this._pieces[i] === false)
+            if (this._segments[i] === false)
                 return false;
         }
         return true;

@@ -1,0 +1,10 @@
+.nodeCard {
+  min-width: 300px;
+  max-width: fit-content;
+  position: fixed;
+  background-color: #252b30 !important;
+  color: #d3d3d3 !important;
+  z-index: 1;
+  padding: 8px 10px;
+  border-radius: 5px;
+}

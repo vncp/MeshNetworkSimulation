@@ -44,6 +44,7 @@ export default class Client {
         return neighborRTTs;
     }
     
+    /* Gets Random Segment */
     getIncompleteSegment(): number {
         let candidate: number;
         do {
@@ -97,8 +98,4 @@ export default class Client {
         });
         return neighborDelays;
     }
-    
-
-    
-    
 }
