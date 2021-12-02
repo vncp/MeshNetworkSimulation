@@ -1,25 +1,25 @@
 export default class Node<DataType> {
-    readonly _id: number;
+    readonly _id: string;
     _data: DataType;
     // NeighborID, Weight
-    _neighbors: Map<number, number>;
+    _neighbors: Map<string, number>;
     
-    constructor(id: number, data: DataType) {
+    constructor(id: string, data: DataType) {
         this._id = id;
         this._data = data;
-        this._neighbors = new Map<number, number>(); // id, weight
+        this._neighbors = new Map<string, number>(); // id, weight
     }
 
     /* Get the degree of the current node  */
     degree = (): number => this._neighbors.size;
     
     /* Add an edge to neighbors */
-    setEdge = (to: number, weight: number): void => {
+    setEdge = (to: string, weight: number): void => {
         this._neighbors.set(to, weight);
     }
 
     /* Remove an edge from neighbors */
-    removeEdge = (toRemove: number): boolean => {
+    removeEdge = (toRemove: string): boolean => {
         return this._neighbors.delete(toRemove);
     }
     

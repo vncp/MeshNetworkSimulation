@@ -8,14 +8,24 @@ import "./styles.css";
 import host_image from '../images/host_blue.png';
 
 export interface NodeData {
+    // Node
     id: string, 
     neighbors: string[], 
+    labelOverride?: string,
+    // Network Data (can be defaulted)
+    latency?: number, // non-propDelays
+    uploadSpeed?: number, // max
+    downloadSpeed?: number, // max
+    packetMaxSize?: number, 
+    bufferSize?: number, // will be autocalculated based on avgRtt * C, included for read
+    bandwidth?: number,
+    // Position
     x?: number, 
     y?: number
 };
 
 export interface LinkData {
-    RTT: number, 
+    propDelay: number, 
     source: string, 
     target: string, 
     transferring: boolean
@@ -32,7 +42,7 @@ export default function NetworkGraph(props: any) {
     const [nodePosition, setNodePosition] = useState<{x: number, y: number}>(null);
     const [stopEngine, setStopEngine] = useState(false);
     const [graphData, setGraphData] = useState<any>(props.gData);
-    const [networkData, setNetworkData] = useState<Network>(new Network());
+    const [network, setNetwork] = useState<Network>(new Network());
     
     const setPosition = (pos: {pageX: number, pageY: number}) => {
         setNodePosition({x: pos.pageX, y: pos.pageY});
@@ -40,8 +50,9 @@ export default function NetworkGraph(props: any) {
     
     // Update data based on props
     useEffect(() => {
-        setGraphData(props.gData);
-    }, [props]);
+        network.fromNetworkData(props.gData);
+        setGraphData(network.toNetworkData());
+    }, [props, network]);
 
     // Update when graph data changes
     useEffect(() => {
@@ -55,14 +66,17 @@ export default function NetworkGraph(props: any) {
                 style={{
                     position: "absolute",
                     margin: "2px 0px 2px 0px",
-                    left: nodePosition?.x,
-                    top: nodePosition?.y,
+                    left: nodePosition?.x + 5,
+                    top: nodePosition?.y + 5,
                     border: "2px solid #81A1C1"
                 }} 
             >
                 <div>
                     <div>IP: {selectedNode.id}</div>
                     <div>Neighbors: {selectedNode.neighbors.join(', ')}</div>
+                    <div>Node Delay: {Math.trunc(selectedNode.latency)} ms</div>
+                    <div>Rate: {Math.trunc(selectedNode.uploadSpeed)} byte/s UP | {Math.trunc(selectedNode.downloadSpeed)} byte/s DOWN</div>
+                    <div>Buffer Size: {selectedNode.bufferSize} bytes</div>
                 </div>
             </div>,
             document.body
@@ -104,9 +118,9 @@ export default function NetworkGraph(props: any) {
                 );
                 return ctx;
             }}
-            linkDirectionalParticles={(link: any) => link?.transferring ? 3 : 0}
+            linkDirectionalParticles={(link: LinkData) => link?.transferring ? 1 : 0}
             linkDirectionalParticleColor={() => '#00AF00'}
-            linkDirectionalParticleSpeed={(link: any) => link}
+            linkDirectionalParticleSpeed={(link: LinkData) => 1/link.propDelay}
             linkColor={(link: any) => link?.transferring ? '#A3BE8C' : '#BF616A'}
             linkWidth={3.0}
             onNodeHover={(node) => (node) ? setSelectedNode(node) : setSelectedNode(null) }
@@ -127,7 +141,6 @@ export default function NetworkGraph(props: any) {
 
 export class Network {
     private _graph: Graph<Client>;
-    private _clients = new Map<number, number>(); // id, state (0: incomplete, 1: complete)
     private _fileSize = 512000; // bytes
     static _currentId = 1;
 
@@ -135,26 +148,48 @@ export class Network {
         this._graph = new Graph<Client>(); 
         this.init();
     }
+
+    fromNetworkData(networkData: NetworkData) {
+        networkData.nodes.forEach((node) => {
+            let client: Client;
+            if(this._graph.getNode(node.id)) {
+                client = this._graph.getNode(node.id)._data;
+                client._label = node.labelOverride || client._label;
+                client._latency = node.latency || client._latency;
+                client._uploadSpeed = node.uploadSpeed || client._uploadSpeed;
+                client._downloadSpeed = node.downloadSpeed || client._downloadSpeed;
+                client._packetMaxSize = node.packetMaxSize || client._packetMaxSize;
+                client._bufferSize = node.bufferSize || client._bufferSize;
+                client._bandwidth = node.bandwidth || client._bandwidth;
+            } else {
+                client = new Client(node, new File(this._fileSize));
+            }
+            this._graph.setVertex(node.id, client);
+        });
+        networkData.links.forEach((link) => {
+            this._graph.setEdge(link.source, link.target, link.propDelay);
+        });
+    }
     
     toNetworkData(): NetworkData {
         let networkData: NetworkData = {nodes: [], links: []};
-        this._clients.forEach((state, id) => {
+        this._graph._nodes.forEach((state, id) => {
             const clientData = this._graph._nodes.get(id)._data;
              
             // Populate neighbor edges
-            const clientNeighbors = this._graph._nodes.get(id)._neighbors;
-            let neighborLinks: LinkData[];
-            let neighborIDs: string[];
+            const clientNeighbors = this._graph.getNode(id)._neighbors;
+            let neighborLinks: LinkData[] = [];
+            let neighborIDs: string[] = [];
             clientNeighbors.forEach((weight, id) => {
-                let neighborData = this._graph._nodes.get(id)._data;
+                let neighborData = this._graph.getNode(id)._data;
                 neighborLinks.push({
-                    "RTT": (neighborData._latency + clientData._latency),
+                    "propDelay": (neighborData._latency + clientData._latency),
                     "source": clientData._label,
                     "target": neighborData._label,
                     "transferring": false
                 });
                 neighborLinks.push({
-                    "RTT": (neighborData._latency + clientData._latency),
+                    "propDelay": (neighborData._latency + clientData._latency),
                     "source": neighborData._label,
                     "target": clientData._label,
                     "transferring": false
@@ -167,7 +202,14 @@ export class Network {
                     ...networkData.nodes, 
                     { 
                         "id": clientData._label, 
-                        "neighbors":  neighborIDs 
+                        "neighbors":  neighborIDs,
+                        "labelOverride": clientData._label ? "labelOverride" : null,
+                        "latency": clientData._latency,
+                        "uploadSpeed": clientData._uploadSpeed,
+                        "downloadSpeed": clientData._downloadSpeed,
+                        "packetMaxSize": clientData._packetMaxSize,
+                        "bufferSize": clientData._bufferSize,
+                        "bandwidth": clientData._bandwidth
                     }
                 ],
                 links: [
@@ -180,21 +222,6 @@ export class Network {
     }
     
     private init() {
-        for (let i = 0; i < 10; i++) {
-            let client = new Client({id: i+1, file: new File(this._fileSize), name: String.fromCharCode(65 + i)});
-            this._clients.set(i+1, 0);
-            this._graph.addVertex(i+1, client);
-        }
-        for (let i = 0; i < 10 - 1; i++) {
-            this._graph.setEdge(i, i+1, 35 + Math.floor(Math.random() * 265));
-        }
-        //Set the seeder to having complete file
-        this._clients.set(1, 1);
-        let node = this._graph.getNode(1);
-        if (node !== undefined) {
-            node._data._file = new File(this._fileSize, true);
-            this._graph.setNode(node); // Update entry
-        }
     }
 
     stepSimulation() {

@@ -1,9 +1,10 @@
 import React, { Component } from "react";
 import File from './file';
 import Node from './node';
+import { NodeData } from './network';
 
 export default class Client extends Component { 
-    readonly _id: number;
+    readonly _id: string;
     _label: string;
     _file: File;
     _currentConnectionID: number | null;
@@ -14,20 +15,17 @@ export default class Client extends Component {
     _bandwidth: number;
     _latency: number; // total delays for node
     
-    constructor(props: {id: number, file: File,  name?: string}) {
+    constructor(props: NodeData, file: File) {
         super(props);
         this._id = props.id;
-        if (props.name)
-            this._label = props.name;
-        else
-            this._label = props.id.toString();
-        this._file = props.file;
+        this._label = props.labelOverride || props.id.toString();
+        this._file = file;
         this._currentConnectionID = null;
-        this._uploadSpeed = 100000 + Math.random() * 9000000; // Bytes
-        this._downloadSpeed = 200000 + Math.random() * 1800000; // Bytes
-        this._packetMaxSize = 1400; // Bytes
-        this._bandwidth = 125000000; // Bytes/sec
-        this._latency = 30 + Math.random() * 10; // All delays except propogation (propgation is weight)
+        this._uploadSpeed = props.uploadSpeed || 100000 + Math.random() * 9000000; // Bytes
+        this._downloadSpeed = props.downloadSpeed || 200000 + Math.random() * 1800000; // Bytes
+        this._packetMaxSize = props.packetMaxSize || 1400; // Bytes
+        this._bandwidth = props.bandwidth || 125000000; // Bytes/sec
+        this._latency = props.latency ||  30 + Math.random() * 10; // All delays except propogation (propgation is weight)
     }
     
     initialize(client: Node<Client>) {
@@ -40,8 +38,8 @@ export default class Client extends Component {
         this._bufferSize = (RTTavg / 1000) * this._bandwidth; // Bytes
     }
     
-    getNeighborRTTs(client: Node<Client>): Array<{peerID: number, RTT: number}> {
-        let neighborRTTs: Array<{peerID: number, RTT: number}> = [];
+    getNeighborRTTs(client: Node<Client>): Array<{peerID: string, RTT: number}> {
+        let neighborRTTs: Array<{peerID: string, RTT: number}> = [];
         client._neighbors.forEach((RTT, id) => {
             neighborRTTs.push({peerID: id, RTT: RTT});
         });
@@ -57,7 +55,7 @@ export default class Client extends Component {
         return candidate;
     }
     
-    getRarestSegment(node: Node<Client>, clients: Map<number, Client>): number {
+    getRarestSegment(node: Node<Client>, clients: Map<string, Client>): number {
         let neighborSegments = this.getNeighborSegments(node, clients);
         let availableCount: number[] = [];
         availableCount.length = this._file._maxsize;
@@ -83,9 +81,9 @@ export default class Client extends Component {
         return minSegmentIdx;
     }
     
-    private getNeighborSegments(node: Node<Client>, clients: Map<number, Client>): Array<{peerID: number, segments: boolean[]}>
+    private getNeighborSegments(node: Node<Client>, clients: Map<string, Client>): Array<{peerID: string, segments: boolean[]}>
          {
-        let neighborStatus: {peerID: number, segments: boolean[]}[] = [];
+        let neighborStatus: {peerID: string, segments: boolean[]}[] = [];
         node._neighbors.forEach((weight, id) => {
             let client = clients.get(id);
             if (client === undefined)
@@ -95,8 +93,8 @@ export default class Client extends Component {
         return neighborStatus;
     }
 
-    getNeighborDelays(node: Node<Client>): Array<{peerID: number, delay: number}> {
-        let neighborDelays: {peerID: number, delay: number}[] = [];
+    getNeighborDelays(node: Node<Client>): Array<{peerID: string, delay: number}> {
+        let neighborDelays: {peerID: string, delay: number}[] = [];
         node._neighbors.forEach((delay, id) => {
             neighborDelays.push({peerID: id, delay: delay})
         });

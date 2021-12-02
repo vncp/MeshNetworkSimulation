@@ -1,13 +1,13 @@
 import Node from './node';
 
 export default class Graph<DataType> {
-  _nodes: Map<number, Node<DataType>>;
+  _nodes: Map<string, Node<DataType>>;
   
   constructor() {
-    this._nodes = new Map<number, Node<DataType>>();
+    this._nodes = new Map<string, Node<DataType>>();
   }
   
-  getNode(id: number): Node<DataType> | undefined {
+  getNode(id: string): Node<DataType> | undefined {
     return this._nodes.get(id);
   }
 
@@ -16,31 +16,31 @@ export default class Graph<DataType> {
   }
   
 
-  addVertex(id: number, data: DataType) {
+  setVertex(id: string, data: DataType) {
     this._nodes.set(id, new Node(id, data));
   }
   
-  setEdge(from: number, to: number, weight: number) {
+  setEdge(from: string, to: string, weight: number) {
     let fromNode = this._nodes.get(from);
     if (fromNode != null)
       fromNode.setEdge(to, weight);
   }
   
-  removeEdge(from: number, to: number) {
+  removeEdge(from: string, to: string) {
     let fromNode = this._nodes.get(from);
     if (fromNode != null)
       fromNode.removeEdge(to);
   }
   
-  updateEdge(from: number, to: number, weight: number) {
+  updateEdge(from: string, to: string, weight: number) {
     let fromNode = this._nodes.get(from);
     if (fromNode != null)
       fromNode.setEdge(to, weight);
   }
   
-  bfs(start: number, func: (node: Node<DataType>) => void) {
-    let seen = new Map<number, boolean>();
-    let queue: number[] = [];
+  bfs(start: string, func: (node: Node<DataType>) => void) {
+    let seen = new Map<string, boolean>();
+    let queue: string[] = [];
     queue.push(start);
     seen.set(start, true);
     while(queue.length !== 0) {
