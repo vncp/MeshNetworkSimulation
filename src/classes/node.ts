@@ -7,7 +7,7 @@ export default class Node<DataType> {
     constructor(id: number, data: DataType) {
         this._id = id;
         this._data = data;
-        this._neighbors = new Map<number, number>();
+        this._neighbors = new Map<number, number>(); // id, weight
     }
 
     /* Get the degree of the current node  */

@@ -1,9 +1,10 @@
+import React, { Component } from "react";
 import File from './file';
 import Node from './node';
 
-export default class Client {
+export default class Client extends Component { 
     readonly _id: number;
-    _name: string;
+    _label: string;
     _file: File;
     _currentConnectionID: number | null;
     _uploadSpeed: number;
@@ -11,19 +12,22 @@ export default class Client {
     _packetMaxSize: number;
     _bufferSize: number = 1000000; // Bytes
     _bandwidth: number;
-
-    constructor(id: number, file: File,  name?: string) {
-        this._id = id;
-        if (name)
-            this._name = name;
+    _latency: number; // total delays for node
+    
+    constructor(props: {id: number, file: File,  name?: string}) {
+        super(props);
+        this._id = props.id;
+        if (props.name)
+            this._label = props.name;
         else
-            this._name = id.toString();
-        this._file = file;
+            this._label = props.id.toString();
+        this._file = props.file;
         this._currentConnectionID = null;
         this._uploadSpeed = 100000 + Math.random() * 9000000; // Bytes
         this._downloadSpeed = 200000 + Math.random() * 1800000; // Bytes
         this._packetMaxSize = 1400; // Bytes
         this._bandwidth = 125000000; // Bytes/sec
+        this._latency = 30 + Math.random() * 10; // All delays except propogation (propgation is weight)
     }
     
     initialize(client: Node<Client>) {

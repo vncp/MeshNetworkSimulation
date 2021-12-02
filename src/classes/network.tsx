@@ -1,12 +1,30 @@
 import Graph from './graph';
-import Node from './node';
 import Client from "./client";
 import File from './file';
 import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
-import ForceGraph2D, { NodeObject, LinkObject } from "react-force-graph-2d";
+import ForceGraph2D from "react-force-graph-2d";
 import "./styles.css";
 import host_image from '../images/host_blue.png';
+
+export interface NodeData {
+    id: string, 
+    neighbors: string[], 
+    x?: number, 
+    y?: number
+};
+
+export interface LinkData {
+    RTT: number, 
+    source: string, 
+    target: string, 
+    transferring: boolean
+};
+
+export interface NetworkData {
+    nodes: NodeData[],
+    links: LinkData[]
+};
 
 export default function NetworkGraph(props: any) {
     const fgRef = useRef<any>();
@@ -14,13 +32,20 @@ export default function NetworkGraph(props: any) {
     const [nodePosition, setNodePosition] = useState<{x: number, y: number}>(null);
     const [stopEngine, setStopEngine] = useState(false);
     const [graphData, setGraphData] = useState<any>(props.gData);
+    const [networkData, setNetworkData] = useState<Network>(new Network());
     
     const setPosition = (pos: {pageX: number, pageY: number}) => {
         setNodePosition({x: pos.pageX, y: pos.pageY});
     }
     
+    // Update data based on props
     useEffect(() => {
         setGraphData(props.gData);
+    }, [props]);
+
+    // Update when graph data changes
+    useEffect(() => {
+        
     }, [graphData]);
     
     return (<div>
@@ -81,6 +106,7 @@ export default function NetworkGraph(props: any) {
             }}
             linkDirectionalParticles={(link: any) => link?.transferring ? 3 : 0}
             linkDirectionalParticleColor={() => '#00AF00'}
+            linkDirectionalParticleSpeed={(link: any) => link}
             linkColor={(link: any) => link?.transferring ? '#A3BE8C' : '#BF616A'}
             linkWidth={3.0}
             onNodeHover={(node) => (node) ? setSelectedNode(node) : setSelectedNode(null) }
@@ -110,9 +136,52 @@ export class Network {
         this.init();
     }
     
+    toNetworkData(): NetworkData {
+        let networkData: NetworkData = {nodes: [], links: []};
+        this._clients.forEach((state, id) => {
+            const clientData = this._graph._nodes.get(id)._data;
+             
+            // Populate neighbor edges
+            const clientNeighbors = this._graph._nodes.get(id)._neighbors;
+            let neighborLinks: LinkData[];
+            let neighborIDs: string[];
+            clientNeighbors.forEach((weight, id) => {
+                let neighborData = this._graph._nodes.get(id)._data;
+                neighborLinks.push({
+                    "RTT": (neighborData._latency + clientData._latency),
+                    "source": clientData._label,
+                    "target": neighborData._label,
+                    "transferring": false
+                });
+                neighborLinks.push({
+                    "RTT": (neighborData._latency + clientData._latency),
+                    "source": neighborData._label,
+                    "target": clientData._label,
+                    "transferring": false
+                });
+                neighborIDs.push(neighborData._label);
+            })
+
+            networkData = {
+                nodes:  [
+                    ...networkData.nodes, 
+                    { 
+                        "id": clientData._label, 
+                        "neighbors":  neighborIDs 
+                    }
+                ],
+                links: [
+                    ...networkData.links,
+                    ...neighborLinks
+                ]
+            };
+        });
+        return networkData;
+    }
+    
     private init() {
         for (let i = 0; i < 10; i++) {
-            let client = new Client(i+1, new File(this._fileSize), String.fromCharCode(65 + i));
+            let client = new Client({id: i+1, file: new File(this._fileSize), name: String.fromCharCode(65 + i)});
             this._clients.set(i+1, 0);
             this._graph.addVertex(i+1, client);
         }
