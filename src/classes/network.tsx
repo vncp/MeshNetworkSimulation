@@ -68,7 +68,7 @@ export default function NetworkGraph(props: any) {
         return () => clearInterval(loop);
     });
 
-    return (<div>
+    return (<div onMouseMove={() => {}}>
         {selectedNode && ReactDOM.createPortal(
             <div
                 className="nodeCard"
