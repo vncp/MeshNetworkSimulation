@@ -53,11 +53,13 @@ export default function NetworkGraph(props: any) {
     useEffect(() => {
         network.fromNetworkData(props.gData);
         setGraphData(network.toNetworkData());
+        console.log("1");
     }, [props, network]);
 
     // Update when graph data changes
     useEffect(() => {
         network.fromNetworkData(graphData);
+        console.log("2");
     }, [graphData]);
 
     useEffect(() => {
@@ -68,7 +70,7 @@ export default function NetworkGraph(props: any) {
         return () => clearInterval(loop);
     });
 
-    return (<div onMouseMove={() => {}}>
+    return (<div onMouseMove={setPosition}>
         {selectedNode && ReactDOM.createPortal(
             <div
                 className="nodeCard"
