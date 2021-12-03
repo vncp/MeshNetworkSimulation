@@ -19,6 +19,7 @@ export interface NodeData {
     packetMaxSize?: number, 
     bufferSize?: number, // will be autocalculated based on avgRtt * C, included for read
     bandwidth?: number,
+    hasFile?: boolean,
     // Position
     x?: number, 
     y?: number
@@ -41,7 +42,7 @@ export default function NetworkGraph(props: any) {
     const [selectedNode, setSelectedNode] = useState<any>(null);
     const [nodePosition, setNodePosition] = useState<{x: number, y: number}>(null);
     const [stopEngine, setStopEngine] = useState(false);
-    const [graphData, setGraphData] = useState<any>(props.gData);
+    const [graphData, setGraphData] = useState<NetworkData>(props.gData);
     const [network, setNetwork] = useState<Network>(new Network());
     
     const setPosition = (pos: {pageX: number, pageY: number}) => {
@@ -56,9 +57,9 @@ export default function NetworkGraph(props: any) {
 
     // Update when graph data changes
     useEffect(() => {
-        
+        network.fromNetworkData(graphData);
     }, [graphData]);
-    
+
     return (<div>
         {selectedNode && ReactDOM.createPortal(
             <div
@@ -73,10 +74,10 @@ export default function NetworkGraph(props: any) {
             >
                 <div>
                     <div>IP: {selectedNode.id}</div>
-                    <div>Neighbors: {selectedNode.neighbors.join(', ')}</div>
                     <div>Node Delay: {Math.trunc(selectedNode.latency)} ms</div>
                     <div>Rate: {Math.trunc(selectedNode.uploadSpeed)} byte/s UP | {Math.trunc(selectedNode.downloadSpeed)} byte/s DOWN</div>
                     <div>Buffer Size: {selectedNode.bufferSize} bytes</div>
+                    {selectedNode._transferring ? <div>Sending to {selectedNode._currentConnectionID}</div> : <div />}
                 </div>
             </div>,
             document.body
@@ -87,25 +88,8 @@ export default function NetworkGraph(props: any) {
             graphData={graphData}
             nodeId="id"
             autoPauseRedraw={false}
-            backgroundColor='#ECEFF4'
+            backgroundColor='#2E3440'
             nodeCanvasObject={(node, ctx) => {
-                ctx.beginPath();
-                const label = node.id;
-                const textWidth = ctx.measureText(label).width;
-                const bgDimensions = [textWidth, 2].map((n) => n + 2);
-                ctx.fillStyle = "#434C5EEA";
-                const fillY = node.y - bgDimensions[1] / 2 + 10;
-                ctx.fillRect(
-                    node.x - bgDimensions[0] / 2 + 1.3,
-                    fillY,
-                    bgDimensions[0],
-                    bgDimensions[1]
-                );
-                ctx.font = `3px mukta`;
-                ctx.textAlign = "center";
-                ctx.fillStyle = "#A3BE8C";
-                ctx.fillText(label, node.x + 1.3, node.y + 11.1);
-                
                 const img = new Image();
                 const size = 15;
                 img.src = host_image;
@@ -116,13 +100,43 @@ export default function NetworkGraph(props: any) {
                     size+1,
                     size
                 );
+
+                ctx.beginPath();
+                const label = node.id.toString();
+                const textWidth = ctx.measureText(label.toString()).width;
+                const bgDimensions = [textWidth, 2].map((n) => n + 2);
+                ctx.fillStyle = "#434C5EEA";
+                ctx.fillRect(
+                    node.x - 12,
+                    node.y + 6.3,
+                    25.8,
+                    6
+                );
+                ctx.font = `3px lato`;
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#A3BE8C";
+                ctx.fillText(label.toString(), node.x + 1.3, node.y + 11.1);
+
+                const delta = network._fileSize / 50;
+                for (let i = 0, pixel = 0; i < network._fileSize; i += delta) {
+                    console.log(i);
+                    if (network._graph.getNode(label)?._data._file._segments[i]) {
+                        ctx.fillStyle = "#A3BE8CFF";
+                    } else {
+                        ctx.fillStyle = "#BF616AFF";
+                    }
+                    ctx.fillRect(node.x + pixel - 11.5, node.y + 7, 0.3, 1);
+                    pixel += 0.5;
+                }
                 return ctx;
             }}
-            linkDirectionalParticles={(link: LinkData) => link?.transferring ? 1 : 0}
+            linkCurvature={0.15}
+            linkDirectionalArrowLength={2}
+            linkDirectionalParticles={(link: LinkData) => link?.transferring ? 2 : 0}
             linkDirectionalParticleColor={() => '#00AF00'}
-            linkDirectionalParticleSpeed={(link: LinkData) => 1/link.propDelay}
+            linkDirectionalParticleSpeed={(link: LinkData) => 5 * link.propDelay}
             linkColor={(link: any) => link?.transferring ? '#A3BE8C' : '#BF616A'}
-            linkWidth={3.0}
+            linkWidth={1.0}
             onNodeHover={(node) => (node) ? setSelectedNode(node) : setSelectedNode(null) }
             minZoom={1.5}
             maxZoom={10}
@@ -140,8 +154,8 @@ export default function NetworkGraph(props: any) {
 }
 
 export class Network {
-    private _graph: Graph<Client>;
-    private _fileSize = 512000; // bytes
+    _graph: Graph<Client>;
+    _fileSize = 512; // segments
     static _currentId = 1;
 
     constructor() {
@@ -186,13 +200,13 @@ export class Network {
                     "propDelay": (neighborData._latency + clientData._latency),
                     "source": clientData._label,
                     "target": neighborData._label,
-                    "transferring": false
+                    "transferring": clientData._transferring,
                 });
                 neighborLinks.push({
                     "propDelay": (neighborData._latency + clientData._latency),
                     "source": neighborData._label,
                     "target": clientData._label,
-                    "transferring": false
+                    "transferring": clientData._transferring,
                 });
                 neighborIDs.push(neighborData._label);
             })
@@ -203,7 +217,7 @@ export class Network {
                     { 
                         "id": clientData._label, 
                         "neighbors":  neighborIDs,
-                        "labelOverride": clientData._label ? "labelOverride" : null,
+                        "labelOverride": clientData._label ? clientData._label : null,
                         "latency": clientData._latency,
                         "uploadSpeed": clientData._uploadSpeed,
                         "downloadSpeed": clientData._downloadSpeed,

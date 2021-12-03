@@ -32,13 +32,13 @@ function App() {
       "propDelay": 124,
       "source": "192.168.1.9",
       "target": "192.168.1.28",
-      "transferring": true
+      "transferring": false
     },
     {
       "propDelay": 52,
       "source": "192.168.1.166",
       "target": "192.168.1.28",
-      "transferring": true
+      "transferring": false
     },
     {
       "propDelay": 95,

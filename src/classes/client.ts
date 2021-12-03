@@ -7,25 +7,27 @@ export default class Client extends Component {
     readonly _id: string;
     _label: string;
     _file: File;
-    _currentConnectionID: number | null;
     _uploadSpeed: number;
     _downloadSpeed: number;
     _packetMaxSize: number;
     _bufferSize: number = 1000000; // Bytes
     _bandwidth: number;
     _latency: number; // total delays for node
+    _currentConnectionID: number | null;
+    _transferring = false;
     
     constructor(props: NodeData, file: File) {
         super(props);
         this._id = props.id;
         this._label = props.labelOverride || props.id.toString();
         this._file = file;
-        this._currentConnectionID = null;
         this._uploadSpeed = props.uploadSpeed || 100000 + Math.random() * 9000000; // Bytes
         this._downloadSpeed = props.downloadSpeed || 200000 + Math.random() * 1800000; // Bytes
         this._packetMaxSize = props.packetMaxSize || 1400; // Bytes
         this._bandwidth = props.bandwidth || 125000000; // Bytes/sec
         this._latency = props.latency ||  30 + Math.random() * 10; // All delays except propogation (propgation is weight)
+        this._currentConnectionID = null;
+        this._transferring = true; // todo
     }
     
     initialize(client: Node<Client>) {
@@ -34,7 +36,7 @@ export default class Client extends Component {
         for (let i = 0; i < RTTs.length; i++) {
             RTTsum += RTTs[i]['RTT'];
         }
-        let RTTavg = RTTsum / RTTs.length;
+        let RTTavg = (RTTsum / RTTs.length);
         this._bufferSize = (RTTavg / 1000) * this._bandwidth; // Bytes
     }
     

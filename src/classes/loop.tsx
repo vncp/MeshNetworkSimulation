@@ -8,7 +8,7 @@ interface IProps {
     onUpdate: any;
 }
 
-export default class GameLoop extends Component<IProps> {
+export default class Loop extends Component<IProps> {
     _timer: Timer;
     _previousTime: number;
     _previousDelta: number;

@@ -22,20 +22,29 @@ export default class Graph<DataType> {
   
   setEdge(from: string, to: string, weight: number) {
     let fromNode = this._nodes.get(from);
-    if (fromNode != null)
+    let toNode = this._nodes.get(to);
+    if (fromNode && toNode) {
       fromNode.setEdge(to, weight);
+      toNode.setEdge(from, weight);
+    }
   }
   
   removeEdge(from: string, to: string) {
     let fromNode = this._nodes.get(from);
-    if (fromNode != null)
+    let toNode = this._nodes.get(from);
+    if (fromNode && toNode) {
       fromNode.removeEdge(to);
+      toNode.removeEdge(from);
+    }
   }
   
   updateEdge(from: string, to: string, weight: number) {
     let fromNode = this._nodes.get(from);
-    if (fromNode != null)
+    let toNode = this._nodes.get(to);
+    if (fromNode && toNode) {
       fromNode.setEdge(to, weight);
+      toNode.setEdge(from, weight);
+    }
   }
   
   bfs(start: string, func: (node: Node<DataType>) => void) {
