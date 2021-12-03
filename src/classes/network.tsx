@@ -60,6 +60,14 @@ export default function NetworkGraph(props: any) {
         network.fromNetworkData(graphData);
     }, [graphData]);
 
+    useEffect(() => {
+        const loop = setInterval(() => {
+            console.log("time");
+        }, 500);
+
+        return () => clearInterval(loop);
+    });
+
     return (<div>
         {selectedNode && ReactDOM.createPortal(
             <div
@@ -82,7 +90,7 @@ export default function NetworkGraph(props: any) {
             </div>,
             document.body
         )}
-        <div onMouseMove={setPosition}>
+        <div>
         <ForceGraph2D
             ref={fgRef}
             graphData={graphData}
@@ -119,7 +127,6 @@ export default function NetworkGraph(props: any) {
 
                 const delta = network._fileSize / 50;
                 for (let i = 0, pixel = 0; i < network._fileSize; i += delta) {
-                    console.log(i);
                     if (network._graph.getNode(label)?._data._file._segments[i]) {
                         ctx.fillStyle = "#A3BE8CFF";
                     } else {
@@ -134,7 +141,7 @@ export default function NetworkGraph(props: any) {
             linkDirectionalArrowLength={2}
             linkDirectionalParticles={(link: LinkData) => link?.transferring ? 2 : 0}
             linkDirectionalParticleColor={() => '#00AF00'}
-            linkDirectionalParticleSpeed={(link: LinkData) => 5 * link.propDelay}
+            linkDirectionalParticleSpeed={(link: LinkData) => 1 / link.propDelay}
             linkColor={(link: any) => link?.transferring ? '#A3BE8C' : '#BF616A'}
             linkWidth={1.0}
             onNodeHover={(node) => (node) ? setSelectedNode(node) : setSelectedNode(null) }
