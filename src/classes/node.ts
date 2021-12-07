@@ -23,6 +23,7 @@ export default class Node<DataType> {
         return this._neighbors.delete(toRemove);
     }
     
+    // Returns the neighbors of the individual node; Determined by edges
     get neighbors() {
         return this._neighbors;
     }

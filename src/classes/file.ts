@@ -18,6 +18,7 @@ export default class File{
         }
     }
     
+    //Checks if the bit is complete; Means if the file has all segments
     isComplete = (): boolean => {
         for (let i = 0; i < this._maxsize; i++) {
             if (this._segments[i] === false)

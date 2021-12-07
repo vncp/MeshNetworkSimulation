@@ -13,19 +13,22 @@ export default class Graph<DataType> {
     this._nodes = new Map<string, Node<DataType>>();
   }
   
+  //Getter for a node
   getNode(id: string): Node<DataType> | undefined {
     return this._nodes.get(id);
   }
 
+  //Setter for a node
   setNode(node: Node<DataType>) {
     this._nodes.set(node._id, node);
   }
   
-
+  //Sets vertex for node
   setVertex(id: string, data: DataType) {
     this._nodes.set(id, new Node(id, data));
   }
   
+  //Sets an edge from a node to another
   setEdge(from: string, to: string, weight: number) {
     let fromNode = this._nodes.get(from);
     let toNode = this._nodes.get(to);
@@ -35,6 +38,7 @@ export default class Graph<DataType> {
     }
   }
   
+  //Remove edge between nodes
   removeEdge(from: string, to: string) {
     let fromNode = this._nodes.get(from);
     let toNode = this._nodes.get(from);
@@ -44,6 +48,7 @@ export default class Graph<DataType> {
     }
   }
   
+  //Update an edge
   updateEdge(from: string, to: string, weight: number) {
     let fromNode = this._nodes.get(from);
     let toNode = this._nodes.get(to);
