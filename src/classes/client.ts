@@ -7,6 +7,7 @@ import { NodeData } from './network';
 * This class is responsible for defining the properties and functions of each Client.
 * A client in the graph is a node.
 * Clients are connected to eachother by links.
+* They also hold states such as transferring and currentConnectionId (the Id of the recipient client)
 */
 
 export default class Client extends Component { 

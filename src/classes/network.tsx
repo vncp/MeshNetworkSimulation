@@ -107,6 +107,7 @@ export default function NetworkGraph(props: any) {
         <div>
         <ForceGraph2D
             ref={fgRef}
+            // @ts-ignore
             graphData={graphData}
             nodeId="id"
             autoPauseRedraw={false}

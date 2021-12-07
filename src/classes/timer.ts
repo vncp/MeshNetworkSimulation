@@ -1,5 +1,8 @@
 import React, { Component } from "react";
 
+/*
+* Timer class which works with loop in order to create a simuluation loop
+*/
 export default class Timer {
     _subscribers: any[];
     _loopId: number;

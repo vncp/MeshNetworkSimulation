@@ -8,6 +8,10 @@ interface IProps {
     onUpdate: any;
 }
 
+/* 
+*   A class to create a simulation loop in React, keeping track of time.
+*/
+
 export default class Loop extends Component<IProps> {
     _timer: Timer;
     _previousTime: number;

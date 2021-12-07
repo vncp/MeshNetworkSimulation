@@ -1,3 +1,8 @@
+
+/*
+* A basic generic node in a graph
+*/
+
 export default class Node<DataType> {
     readonly _id: string;
     _data: DataType;

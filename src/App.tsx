@@ -2,6 +2,10 @@ import './App.css';
 import NetworkGraph, { NetworkData } from './classes/network';
 
 function App() {
+  
+  /*
+  * Graph Data
+  */
   const graphData: NetworkData = {
   nodes: [
     {
