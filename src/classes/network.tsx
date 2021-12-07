@@ -7,6 +7,18 @@ import ForceGraph2D from "react-force-graph-2d";
 import "./styles.css";
 import host_image from '../images/host_blue.png';
 
+/*
+* This class is responsible for building the visualization/simulation of the graph.
+* It contains the algorithms for displaying information particular to each node,
+* as well as changing states of the graph according to the routing strategy.
+*/
+
+//One client broadcasts that they are a leecher (request)
+
+        //Start with another client acting as requester
+        // 1. Get random first piece
+        // 2. Start looping with other clients in graph using rarest segment
+
 export interface NodeData {
     // Node
     id: string, 

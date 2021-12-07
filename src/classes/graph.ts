@@ -1,5 +1,11 @@
 import Node from './node';
 
+/*
+* This class is responsible for building the graph representation through code.
+* Does not build the actual visualization.
+*
+*/
+
 export default class Graph<DataType> {
   _nodes: Map<string, Node<DataType>>;
   
@@ -47,6 +53,7 @@ export default class Graph<DataType> {
     }
   }
   
+  // A standard BFS used as a helper for many graph functionalities.
   bfs(start: string, func: (node: Node<DataType>) => void) {
     let seen = new Map<string, boolean>();
     let queue: string[] = [];

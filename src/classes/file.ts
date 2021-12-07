@@ -1,3 +1,10 @@
+/*
+* This class is for representing a file in segments.
+* The file is representing as a bit vector, with each bit representing
+* a segment.
+*/
+
+
 export default class File{
     readonly _maxsize: number;
     _segments: boolean[] = [];

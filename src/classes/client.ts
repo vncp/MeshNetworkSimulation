@@ -3,6 +3,12 @@ import File from './file';
 import Node from './node';
 import { NodeData } from './network';
 
+/*
+* This class is responsible for defining the properties and functions of each Client.
+* A client in the graph is a node.
+* Clients are connected to eachother by links.
+*/
+
 export default class Client extends Component { 
     readonly _id: string;
     _label: string;
@@ -40,6 +46,7 @@ export default class Client extends Component {
         this._bufferSize = (RTTavg / 1000) * this._bandwidth; // Bytes
     }
     
+    //Round trip time to neighbors
     getNeighborRTTs(client: Node<Client>): Array<{peerID: string, RTT: number}> {
         let neighborRTTs: Array<{peerID: string, RTT: number}> = [];
         client._neighbors.forEach((RTT, id) => {
@@ -48,7 +55,7 @@ export default class Client extends Component {
         return neighborRTTs;
     }
     
-    /* Gets Random Segment */
+    /* Gets Random Segment first*/
     getIncompleteSegment(): number {
         let candidate: number;
         do {
@@ -57,6 +64,7 @@ export default class Client extends Component {
         return candidate;
     }
     
+    /* After getting a random segment, the node should grab the rarest segment.*/
     getRarestSegment(node: Node<Client>, clients: Map<string, Client>): number {
         let neighborSegments = this.getNeighborSegments(node, clients);
         let availableCount: number[] = [];
@@ -83,6 +91,8 @@ export default class Client extends Component {
         return minSegmentIdx;
     }
     
+    //Get the current status of neighbor segments:
+    //This means which segments of the file a neighboring node has so that they may be downloaded according to rarity.
     private getNeighborSegments(node: Node<Client>, clients: Map<string, Client>): Array<{peerID: string, segments: boolean[]}>
          {
         let neighborStatus: {peerID: string, segments: boolean[]}[] = [];
@@ -95,6 +105,7 @@ export default class Client extends Component {
         return neighborStatus;
     }
 
+    //Accounts for the delays of neighboring nodes, so that in the final stage can choose best node to download segments from.
     getNeighborDelays(node: Node<Client>): Array<{peerID: string, delay: number}> {
         let neighborDelays: {peerID: string, delay: number}[] = [];
         node._neighbors.forEach((delay, id) => {
